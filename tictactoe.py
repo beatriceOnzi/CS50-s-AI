@@ -47,7 +47,7 @@ def actions(board):
     """
     Returns set of all possible actions (i, j) available on the board.
     """
-    actions_available: set[tuple[int, int]] = set()
+    actions_available = set()
 
     for i in range(0, 3):
         for j in range(0,3):
@@ -140,21 +140,22 @@ def minimax(board):
 
     available_actions = actions(board)
     best_action = None
+    best_value = -math.inf if player(board) == X else math.inf
+    beta = math.inf 
+    alpha = -math.inf
 
     if player(board) == X:
-        best_value = -math.inf
 
         for action in available_actions:
-            value = min_value(result(board, action))
+            value = min_value(alpha, beta, result(board, action))
             if value > best_value:
                 best_value = value
                 best_action = action
             
     if player(board) == O:
-        best_value = math.inf
 
         for action in available_actions:
-            value = max_value(result(board, action))
+            value = max_value(alpha, beta, result(board, action))
             if value < best_value:
                 best_value = value
                 best_action = action
@@ -162,7 +163,7 @@ def minimax(board):
     return best_action
 
 
-def max_value(board):
+def max_value(alpha, beta, board):
     if terminal(board):
         return utility(board)
 
@@ -170,11 +171,17 @@ def max_value(board):
     v = -math.inf
 
     for action in available_actions:
-        v = max(v, min_value(result(board, action)))
+        v = max(v, min_value(alpha, beta, result(board, action)))
+        alpha = max(alpha, v)
+        print("actions", action)
+
+        if alpha >= beta:
+            break
+        
 
     return v
 
-def min_value(board):
+def min_value(alpha, beta, board):
     if terminal(board):
         return utility(board)
 
@@ -182,6 +189,10 @@ def min_value(board):
     v = math.inf
 
     for action in available_actions:
-        v = min(v, max_value(result(board, action)))
+        v = min(v, max_value(alpha, beta, result(board, action)))
+        beta = min(beta, v)
+
+        if alpha >= beta:
+            break
 
     return v
