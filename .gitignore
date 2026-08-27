@@ -1,0 +1,6 @@
+large/
+small/
+_pycache_
+.venv
+.venv-1
+.vscode
