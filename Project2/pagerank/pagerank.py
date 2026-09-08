@@ -56,9 +56,27 @@ def transition_model(corpus, page, damping_factor):
     With probability `damping_factor`, choose a link at random
     linked to by `page`. With probability `1 - damping_factor`, choose
     a link at random chosen from all pages in the corpus.
+    {
+            "1.html": {"2.html", "3.html"}, 
+            "2.html": {"3.html"}, 
+            "3.html": {"1.html"}
+        }
     """
-    raise NotImplementedError
+    damping_prob = (1 - damping_factor) / len(corpus)
+    page_prob = {}
 
+    if not corpus[page]:
+        page_prob = {key: damping_prob for key in corpus}
+        return page_prob
+
+    for p in corpus:
+        if (p in corpus[page]):
+            page_prob[p] = damping_prob + (damping_factor / len(corpus[page]))
+        else:
+            page_prob[p] = damping_prob
+
+    return page_prob
+        
 
 def sample_pagerank(corpus, damping_factor, n):
     """
@@ -68,8 +86,33 @@ def sample_pagerank(corpus, damping_factor, n):
     Return a dictionary where keys are page names, and values are
     their estimated PageRank value (a value between 0 and 1). All
     PageRank values should sum to 1.
+    {
+        "1.html": {"2.html", "3.html"}, 
+        "2.html": {"3.html"}, 
+        "3.html": {"2.html"}
+    }
     """
-    raise NotImplementedError
+    page = random.choice(list(corpus.keys()))
+    pages = [page]
+    page_rank = {}
+
+    for _ in range(n):
+        page_prob = transition_model(corpus, page, damping_factor)
+        page = get_next_page(page_prob)
+        pages.append(page)
+
+    for p in corpus:
+        prob = pages.count(p) / n
+        page_rank[p] = prob
+
+    return page_rank
+
+
+def get_next_page(page_prob):
+    pages = list(page_prob)
+    weights = list(page_prob.values())
+    next_page = random.choices(pages, weights = weights, k=1)
+    return next_page[0]
 
 
 def iterate_pagerank(corpus, damping_factor):
