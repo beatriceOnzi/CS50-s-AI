@@ -56,11 +56,6 @@ def transition_model(corpus, page, damping_factor):
     With probability `damping_factor`, choose a link at random
     linked to by `page`. With probability `1 - damping_factor`, choose
     a link at random chosen from all pages in the corpus.
-    {
-            "1.html": {"2.html", "3.html"}, 
-            "2.html": {"3.html"}, 
-            "3.html": {"1.html"}
-        }
     """
     damping_prob = (1 - damping_factor) / len(corpus)
     page_prob = {}
@@ -86,11 +81,6 @@ def sample_pagerank(corpus, damping_factor, n):
     Return a dictionary where keys are page names, and values are
     their estimated PageRank value (a value between 0 and 1). All
     PageRank values should sum to 1.
-    {
-        "1.html": {"2.html", "3.html"}, 
-        "2.html": {"3.html"}, 
-        "3.html": {"2.html"}
-    }
     """
     page = random.choice(list(corpus.keys()))
     pages = [page]
@@ -111,7 +101,9 @@ def sample_pagerank(corpus, damping_factor, n):
 def get_next_page(page_prob):
     pages = list(page_prob)
     weights = list(page_prob.values())
+
     next_page = random.choices(pages, weights = weights, k=1)
+
     return next_page[0]
 
 
@@ -123,8 +115,54 @@ def iterate_pagerank(corpus, damping_factor):
     Return a dictionary where keys are page names, and values are
     their estimated PageRank value (a value between 0 and 1). All
     PageRank values should sum to 1.
+    {
+        "1.html": {"2.html", "3.html"}, 
+        "2.html": {"3.html"}, 
+        "3.html": {"2.html"}}
+
+        to do:
+        Simultaneous vs. sequential updates: Inside your loop, when you update pages_rank[p], 
+        the calculation for the next page uses this already-updated value. Should all pages in one 
+        round be based on the previous round's values? Think about whether you need a separate 
+        copy to read from while writing new values.
+
     """
-    raise NotImplementedError
+    damping_prob = (1 - damping_factor) / len(corpus)
+    pages_rank = dict.fromkeys(corpus, (1 / len(corpus)))
+
+    pages = list(pages_rank)
+
+    while True:
+        rank_values = list(pages_rank.values())
+        copy_pages_rank = pages_rank.copy()
+
+        for p in pages:
+            sum = 0
+            for i in pages:
+                if not corpus[i]:
+                    num_links_i = len(corpus)
+                    sum = sum + (copy_pages_rank[i] / num_links_i)
+
+                elif p in corpus[i]:
+                    num_links_i = len(corpus[i])
+                    sum = sum + (copy_pages_rank[i] / num_links_i)
+
+            pages_rank[p] = damping_prob + (damping_factor * sum)
+
+        new_rank_values = list(pages_rank.values())
+
+        if not there_was_pagerank_change(rank_values, new_rank_values):
+            break
+
+    return pages_rank
+
+def there_was_pagerank_change(rank_values, new_rank_values):
+    for i in range(len(rank_values)):
+        difference = abs(rank_values[i] - new_rank_values[i])
+        if (difference > 0.001):
+            return True
+        
+    return False
 
 
 if __name__ == "__main__":
