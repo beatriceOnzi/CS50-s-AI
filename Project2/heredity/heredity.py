@@ -293,8 +293,21 @@ def normalize(probabilities):
     Update `probabilities` such that each probability distribution
     is normalized (i.e., sums to 1, with relative proportions the same).
     """
-    raise NotImplementedError
+    peoples_names = list(probabilities)
 
+    for person in peoples_names:
+        gene_values = probabilities[person]['gene']
+        trait_values = probabilities[person]['trait']
+
+        probabilities[person]['gene'] = get_normalized_values(gene_values)
+        probabilities[person]['trait'] = get_normalized_values(trait_values)
+
+
+def get_normalized_values(prob_dictionary):
+    total = sum(prob_dictionary.values())
+
+    norm = {key: v / total for key, v in prob_dictionary.items()}
+    return norm
 
 if __name__ == "__main__":
     main()
