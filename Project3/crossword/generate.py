@@ -14,6 +14,7 @@ class CrosswordCreator():
             var: self.crossword.words.copy()
             for var in self.crossword.variables
         }
+        
 
     def letter_grid(self, assignment):
         """
@@ -99,7 +100,12 @@ class CrosswordCreator():
         (Remove any values that are inconsistent with a variable's unary
          constraints; in this case, the length of the word.)
         """
-        raise NotImplementedError
+        for v in self.domains:
+            for option in self.domains[v].copy():
+                if len(option) == v.length:
+                    continue
+                else:
+                    self.domains[v].remove(option)
 
     def revise(self, x, y):
         """
@@ -110,7 +116,27 @@ class CrosswordCreator():
         Return True if a revision was made to the domain of `x`; return
         False if no revision was made.
         """
-        raise NotImplementedError
+        overlap = self.crossword.overlaps[x, y]
+        consistent_x = []
+
+        if not overlap:
+            return False
+
+        for x_op in self.domains[x]:
+            for y_op in self.domains[y]:
+                if x_op[overlap[0]] == y_op[overlap[1]]:
+                    consistent_x.append(x_op)
+                    break
+
+        if len(self.domains[x]) == len(consistent_x):
+            return False
+
+        for option in self.domains[x].copy():
+            if option not in consistent_x:
+                self.domains[x].remove(option)
+
+        return True
+                    
 
     def ac3(self, arcs=None):
         """
@@ -120,15 +146,61 @@ class CrosswordCreator():
 
         Return True if arc consistency is enforced and no domains are empty;
         return False if one or more domains end up empty.
+        function AC-3(csp):
+            queue = all arcs in csp
+            while queue non-empty:
+                (X, Y) = DEQUEUE(queue)
+                if REVISE(csp, X, Y):
+                    if size of X.domain == 0:
+                        return false
+                    for each Z in X.neighbors - {Y}:
+                        ENQUEUE(queue, (Z, X))
+            return true
         """
-        raise NotImplementedError
+        if arcs == None:
+            queue = self.get_all_arcs()
+        else:
+            queue = arcs
+
+        while queue:
+            arc = queue[-1]
+            queue.pop(-1)
+            if self.revise(arc[0], arc[1]):
+                if not self.domains[arc[0]]:
+                    return False
+                
+                neighbors = self.crossword.neighbors(arc[0])
+                neighbors.remove(arc[1])
+
+                for neighbor in neighbors:
+                    new_arc = (neighbor, arc[0])
+                    queue.append(new_arc)
+        return True
+
+    def get_all_arcs(self):
+        arcs = []
+
+        for x in self.domains:
+            neighbors = self.crossword.neighbors(x)
+
+            for neighbor in neighbors:
+                new_arc = x, neighbor
+                arcs.append(new_arc)
+
+        return arcs
 
     def assignment_complete(self, assignment):
         """
         Return True if `assignment` is complete (i.e., assigns a value to each
         crossword variable); return False otherwise.
         """
-        raise NotImplementedError
+        variables = self.crossword.variables
+
+        for value in variables:
+            if assignment.get(value) == None:
+                return False
+            
+        return True
 
     def consistent(self, assignment):
         """
