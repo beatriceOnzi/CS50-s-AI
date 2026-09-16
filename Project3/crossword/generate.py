@@ -122,10 +122,10 @@ class CrosswordCreator():
         if not overlap:
             return False
 
-        for x_op in self.domains[x]:
-            for y_op in self.domains[y]:
-                if x_op[overlap[0]] == y_op[overlap[1]]:
-                    consistent_x.append(x_op)
+        for op_1 in self.domains[x]:
+            for op_2 in self.domains[y]:
+                if op_1[overlap[0]] == op_2[overlap[1]]:
+                    consistent_x.append(op_1)
                     break
 
         if len(self.domains[x]) == len(consistent_x):
@@ -146,16 +146,6 @@ class CrosswordCreator():
 
         Return True if arc consistency is enforced and no domains are empty;
         return False if one or more domains end up empty.
-        function AC-3(csp):
-            queue = all arcs in csp
-            while queue non-empty:
-                (X, Y) = DEQUEUE(queue)
-                if REVISE(csp, X, Y):
-                    if size of X.domain == 0:
-                        return false
-                    for each Z in X.neighbors - {Y}:
-                        ENQUEUE(queue, (Z, X))
-            return true
         """
         if arcs == None:
             queue = self.get_all_arcs()
@@ -207,7 +197,27 @@ class CrosswordCreator():
         Return True if `assignment` is consistent (i.e., words fit in crossword
         puzzle without conflicting characters); return False otherwise.
         """
-        raise NotImplementedError
+        values = list(assignment.values())
+        values_has_duplicates = len(set(values)) < len(values)
+        if values_has_duplicates:
+            return False
+    
+        variables = list(assignment)
+        for variable in variables:
+            if variable.length != len(assignment[variable]):
+                return False
+
+        for v1 in variables:
+            for v2 in variables:
+                if v1 != v2:
+                    overlap = self.crossword.overlaps[v1, v2]
+                    word_1 = assignment[v1]
+                    word_2 = assignment[v2]
+                    if overlap:
+                        if word_1[overlap[0]] != word_2[overlap[1]]:
+                            return False
+
+        return True
 
     def order_domain_values(self, var, assignment):
         """
@@ -216,7 +226,34 @@ class CrosswordCreator():
         The first value in the list, for example, should be the one
         that rules out the fewest values among the neighbors of `var`.
         """
-        raise NotImplementedError
+
+        domain_values = self.domains[var]
+        assigned_values = list(assignment.values())
+
+        values = [op for op in domain_values if op not in assigned_values]
+
+
+        neighbors = self.crossword.neighbors(var) - set(assignment)
+
+        conts_values = {}
+
+        for option in values:
+            conts_values[option] = 0
+            for neighbor in neighbors:
+
+                if option in self.domains[neighbor]:
+                    conts_values[option] += 1
+
+                for option_neighbor in self.domains[neighbor]:
+                    if option_neighbor != option:
+                        overlap = self.crossword.overlaps[var, neighbor]
+                        if overlap:
+                            if option[overlap[0]] != option_neighbor[overlap[1]]:
+                                conts_values[option] +=1
+
+        ordered_values = sorted(values, key=lambda a: conts_values[a])
+        return ordered_values
+        
 
     def select_unassigned_variable(self, assignment):
         """
