@@ -1,7 +1,8 @@
 import sys
-import math
 
+from math import inf
 from crossword import *
+from copy import deepcopy
 
 
 class CrosswordCreator():
@@ -16,7 +17,6 @@ class CrosswordCreator():
             for var in self.crossword.variables
         }
         
-
     def letter_grid(self, assignment):
         """
         Return 2D array representing a given assignment.
@@ -136,8 +136,7 @@ class CrosswordCreator():
             if option not in consistent_x:
                 self.domains[x].remove(option)
 
-        return True
-                    
+        return True     
 
     def ac3(self, arcs=None):
         """
@@ -227,12 +226,10 @@ class CrosswordCreator():
         The first value in the list, for example, should be the one
         that rules out the fewest values among the neighbors of `var`.
         """
-
         domain_values = self.domains[var]
         assigned_values = list(assignment.values())
 
         values = [op for op in domain_values if op not in assigned_values]
-
 
         neighbors = self.crossword.neighbors(var) - set(assignment)
 
@@ -250,11 +247,10 @@ class CrosswordCreator():
                         overlap = self.crossword.overlaps[var, neighbor]
                         if overlap:
                             if option[overlap[0]] != option_neighbor[overlap[1]]:
-                                conts_values[option] +=1
+                                conts_values[option] += 1
 
         ordered_values = sorted(values, key=lambda a: conts_values[a])
         return ordered_values
-        
 
     def select_unassigned_variable(self, assignment):
         """
@@ -282,15 +278,14 @@ class CrosswordCreator():
         if len(minimum_domain_variables) == 1:
             return minimum_domain_variables[0]
 
-        variables_domains_amount = {v: len(self.crossword.neighbors(v)) for v in minimum_domain_variables}
+        variables_domains_amount = {v: len(self.crossword.neighbors(v)) 
+                                    for v in minimum_domain_variables}
 
         min_value = max(variables_domains_amount.values())
 
         for variable in minimum_domain_variables:
             if variables_domains_amount[variable] == min_value:
                 return variable
-
-
 
     def backtrack(self, assignment):
         """
@@ -300,42 +295,28 @@ class CrosswordCreator():
         `assignment` is a mapping from variables (keys) to words (values).
 
         If no assignment is possible, return None.
-
-        if assignment complete: return assignment
-        var = SELECT-UNASSIGNED-VAR(assignment, csp)
-
-        for value in DOMAIN-VALUES(var, assignment, csp):
-            if value consistent with assignment:
-                add {var = value} to assignment
-                inferences = INFERENCE(assignment, csp)
-
-                if inferences ≠ failure: add inferences to assignment
-                    result = BACKTRACK(assignment, csp)
-                    if result ≠ failure: return result
-            remove {var = value} and inferences from assignment
-        return failure
-
-        enforce_node_consistency
-        ar3
         """
+
         if self.assignment_complete(assignment):
             return assignment
 
         var = self.select_unassigned_variable(assignment)
 
+        pre_assignment_domains = deepcopy(self.domains)
+
         for value in self.order_domain_values(var, assignment):
-            assignment_copy = assignment
-            assignment_copy[var] = value
-            if self.ac3():
-                assignment[var] = value
+            assignment[var] = value
+            if self.consistent(assignment):
+                self.domains[var] = {value}
+                self.ac3([(other_var, var) for other_var in self.crossword.neighbors(var)])
+
                 result = self.backtrack(assignment)
                 if result:
                     return result
 
-            assignment.pop(var)
-
+            del assignment[var]
+            self.domains = pre_assignment_domains
         return None
-
 
 
 def main():
