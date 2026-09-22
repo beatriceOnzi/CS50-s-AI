@@ -118,7 +118,10 @@ def train_model(evidence, labels):
 
     KNeighborsClassifier(n_neighbors=1)
     """
-    raise NotImplementedError
+    neigh = KNeighborsClassifier(n_neighbors=1)
+    neigh.fit(evidence, labels)
+
+    return neigh
 
 
 def evaluate(labels, predictions):
@@ -136,7 +139,30 @@ def evaluate(labels, predictions):
     representing the "true negative rate": the proportion of
     actual negative labels that were accurately identified.
     """
-    raise NotImplementedError
+    true_positive = 0
+    true_negative = 0
+
+    amount_true = 0
+    amount_false = 0
+
+    index = 0
+    for l in labels:
+        if l == 1:
+            if l == predictions[index]:
+                true_positive += 1
+            amount_true += 1
+
+        elif l == 0:
+            if l == predictions[index]:
+                true_negative += 1
+            amount_false += 1
+
+        index += 1
+
+    sensitivity = true_positive / amount_true
+    specificity = true_negative / amount_false
+
+    return (sensitivity, specificity)
 
 
 if __name__ == "__main__":
