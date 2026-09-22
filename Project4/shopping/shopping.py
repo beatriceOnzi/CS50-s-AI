@@ -59,13 +59,64 @@ def load_data(filename):
     labels should be the corresponding list of labels, where each label
     is 1 if Revenue is true, and 0 otherwise.
     """
-    raise NotImplementedError
+    months = {
+        "Jan": 0,
+        "Feb": 1,
+        "Mar": 2,
+        "Apr": 3,
+        "May": 4,
+        "June": 5,
+        "Jul": 6,
+        "Aug": 7,
+        "Sep": 8,
+        "Oct": 9,
+        "Nov": 10,
+        "Dec": 11,
+    }
+
+    visitor_type = {
+        "Returning_Visitor": 1,
+        "New_Visitor": 0,
+        "Other": 0
+    }
+
+    bool_map = {
+        "TRUE": True,
+        "FALSE": False
+    }
+
+    with open(filename) as f:
+        reader = csv.reader(f)
+        next(reader)
+
+        evidence = []
+        label = []
+        for row in reader:
+            sample = []
+            
+            sample.append(int(row[0]))
+            sample.append(float(row[1]))
+            sample.append(int(row[2]))
+            sample.append(float(row[3]))
+            sample.append(int(row[4]))
+            sample.extend(float(cell) for cell in row[5:10])
+            sample.append(months[row[10]])
+            sample.extend([float(cell) for cell in row[11:15]])
+            sample.append(visitor_type[row[15]])
+            sample.append(bool_map[row[16]])
+
+            evidence.append(sample)
+            label.append(bool_map[row[17]])
+
+    return (evidence, label)
 
 
 def train_model(evidence, labels):
     """
     Given a list of evidence lists and a list of labels, return a
     fitted k-nearest neighbor model (k=1) trained on the data.
+
+    KNeighborsClassifier(n_neighbors=1)
     """
     raise NotImplementedError
 
