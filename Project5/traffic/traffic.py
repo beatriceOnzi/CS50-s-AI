@@ -3,6 +3,8 @@ import numpy as np
 import os
 import sys
 import tensorflow as tf
+import keras
+from keras import layers
 
 from sklearn.model_selection import train_test_split
 
@@ -57,9 +59,26 @@ def load_data(data_dir):
     numpy ndarray with dimensions IMG_WIDTH x IMG_HEIGHT x 3. `labels` should
     be a list of integer labels, representing the categories for each of the
     corresponding `images`.
-    """
-    raise NotImplementedError
 
+
+    """
+    images = []
+    labels = []
+    
+    for dir in os.scandir(data_dir):
+        if dir.is_dir():
+            categorie = dir.name
+            for image in os.scandir(dir):
+
+                img_array = cv2.imread(image.path)
+                resized_img = cv2.resize(img_array, (IMG_WIDTH, IMG_HEIGHT))
+
+                images.append(resized_img)
+                labels.append(categorie)
+
+    data = (images, labels)
+
+    return data
 
 def get_model():
     """
@@ -67,8 +86,24 @@ def get_model():
     `input_shape` of the first layer is `(IMG_WIDTH, IMG_HEIGHT, 3)`.
     The output layer should have `NUM_CATEGORIES` units, one for each category.
     """
-    raise NotImplementedError
+    input_layer = layers.InputLayer(input_shape=[IMG_WIDTH, IMG_HEIGHT, 3])
+    conv2d_layer = layers.Conv2D(32, 3, activation='relu')
+    pooling2d_layer = layers.MaxPooling2D(pool_size=(2, 2))
+    flatten_layer = layers.Flatten()
+    dense_layer = layers.Dense(32, activation='relu')
+    output_layer = layers.Dense(43, activation='softmax')
 
+    model = tf.keras.Sequential(
+        [
+            input_layer,
+            conv2d_layer,
+            pooling2d_layer,
+            flatten_layer,
+            dense_layer,
+            output_layer
+        ]
+    )
+    return model
 
 if __name__ == "__main__":
     main()
