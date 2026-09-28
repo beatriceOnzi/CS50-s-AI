@@ -12,6 +12,7 @@ EPOCHS = 10
 IMG_WIDTH = 30
 IMG_HEIGHT = 30
 NUM_CATEGORIES = 43
+SMALL_NUM_CATEGORIES = 3
 TEST_SIZE = 0.4
 
 
@@ -86,23 +87,24 @@ def get_model():
     `input_shape` of the first layer is `(IMG_WIDTH, IMG_HEIGHT, 3)`.
     The output layer should have `NUM_CATEGORIES` units, one for each category.
     """
-    input_layer = layers.InputLayer(input_shape=[IMG_WIDTH, IMG_HEIGHT, 3])
-    conv2d_layer = layers.Conv2D(32, 3, activation='relu')
-    pooling2d_layer = layers.MaxPooling2D(pool_size=(2, 2))
-    flatten_layer = layers.Flatten()
-    dense_layer = layers.Dense(32, activation='relu')
-    output_layer = layers.Dense(43, activation='softmax')
 
     model = tf.keras.Sequential(
         [
-            input_layer,
-            conv2d_layer,
-            pooling2d_layer,
-            flatten_layer,
-            dense_layer,
-            output_layer
+            layers.InputLayer(input_shape=[IMG_WIDTH, IMG_HEIGHT, 3]),
+            layers.Conv2D(32, 3, activation='relu'),
+            layers.MaxPooling2D(pool_size=(2, 2)),
+            layers.Flatten(),
+            layers.Dense(SMALL_NUM_CATEGORIES, activation='relu'),
+            layers.Activation('softmax')
         ]
     )
+
+    model.compile(
+        optimizer="adam",
+        loss="categorical_crossentropy",
+        metrics=["accuracy"]
+    )
+
     return model
 
 if __name__ == "__main__":
