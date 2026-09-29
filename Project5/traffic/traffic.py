@@ -12,7 +12,6 @@ EPOCHS = 10
 IMG_WIDTH = 30
 IMG_HEIGHT = 30
 NUM_CATEGORIES = 43
-SMALL_NUM_CATEGORIES = 3
 TEST_SIZE = 0.4
 
 
@@ -91,10 +90,13 @@ def get_model():
     model = tf.keras.Sequential(
         [
             layers.InputLayer(input_shape=[IMG_WIDTH, IMG_HEIGHT, 3]),
-            layers.Conv2D(32, 3, activation='relu'),
+            layers.Conv2D(32, 3 , activation='relu'),
             layers.MaxPooling2D(pool_size=(2, 2)),
+            layers.BatchNormalization(),
             layers.Flatten(),
-            layers.Dense(SMALL_NUM_CATEGORIES, activation='relu'),
+            layers.Dense(32, activation='relu'),
+            layers.Dropout(0.2),
+            layers.Dense(NUM_CATEGORIES, 'linear'),
             layers.Activation('softmax')
         ]
     )
