@@ -1,6 +1,8 @@
 import nltk
 import sys
 
+nltk.download('punkt_tab')
+
 TERMINALS = """
 Adj -> "country" | "dreadful" | "enigmatical" | "little" | "moist" | "red"
 Adv -> "down" | "here" | "never"
@@ -15,7 +17,15 @@ V -> "smiled" | "tell" | "were"
 """
 
 NONTERMINALS = """
-S -> N V
+S -> NP VP
+S -> NP VP Conj NP VP
+S -> NP VP Conj VP
+
+VP -> V | V NP | V NP PP | V PP | Adv VP | VP Adv
+NP -> N | Det NP | AjP NP | N PP | PP NP
+AjP -> Adj | Adj AjP
+PP -> P NP
+
 """
 
 grammar = nltk.CFG.fromstring(NONTERMINALS + TERMINALS)
@@ -62,7 +72,14 @@ def preprocess(sentence):
     and removing any word that does not contain at least one alphabetic
     character.
     """
-    raise NotImplementedError
+    sentence = sentence.lower()
+    words = nltk.tokenize.word_tokenize(sentence)
+
+    for word in words:
+        if not any(c.isalpha() for c in word):
+            words.remove(word)
+
+    return words
 
 
 def np_chunk(tree):
