@@ -4,7 +4,5 @@ _pycache_
 .venv
 .venv-1
 .vscode
-src4/
-src5/
 gtsrb
-gtsrb-small
+src6/
