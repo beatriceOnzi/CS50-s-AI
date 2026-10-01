@@ -75,9 +75,8 @@ def preprocess(sentence):
     sentence = sentence.lower()
     words = nltk.tokenize.word_tokenize(sentence)
 
-    for word in words:
-        if not any(c.isalpha() for c in word):
-            words.remove(word)
+    words = [word for word in words if any(c.isalpha() for c in word)]
+
 
     return words
 
@@ -89,8 +88,14 @@ def np_chunk(tree):
     whose label is "NP" that does not itself contain any other
     noun phrases as subtrees.
     """
-    raise NotImplementedError
+    sentences = []
+    
+    for s in tree.subtrees(lambda t: t.label() == "NP"):
+        if not any(ss.label() == "NP" and ss != s for ss in s.subtrees()):
+            sentences.append(s)
 
+    return sentences
+    
 
 if __name__ == "__main__":
     main()
