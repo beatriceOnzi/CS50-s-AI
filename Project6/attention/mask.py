@@ -45,9 +45,13 @@ def get_mask_token_index(mask_token_id, inputs):
     Return the index of the token with the specified `mask_token_id`, or
     `None` if not present in the `inputs`.
     """
-    # TODO: Implement this function
-    raise NotImplementedError
+    ids = inputs.input_ids
+    
+    for pos, token_id in enumerate(ids[0]):
+        if int(token_id.numpy()) == mask_token_id:
+            return pos
 
+    return None
 
 
 def get_color_for_attention_score(attention_score):
@@ -55,10 +59,9 @@ def get_color_for_attention_score(attention_score):
     Return a tuple of three integers representing a shade of gray for the
     given `attention_score`. Each value should be in the range [0, 255].
     """
-    # TODO: Implement this function
-    raise NotImplementedError
-
-
+    color = round( attention_score.numpy() * 255 )
+    return (color, color, color)
+    
 
 def visualize_attentions(tokens, attentions):
     """
@@ -69,14 +72,27 @@ def visualize_attentions(tokens, attentions):
     `tokens` in the sentence. The filename for each diagram should
     include both the layer number (starting count from 1) and head number
     (starting count from 1).
+
+    {'input_ids': <tf.Tensor: shape=(1, 15), dtype=int32, numpy=
+        array([[ 101, 2057, 2357, 2091, 1037, 4867, 4644, 1998, 2979, 2083, 1037,
+        2235,  103, 1012,  102]], dtype=int32)>, 'token_type_ids': <tf.Tensor: 
+        shape=(1, 15), dtype=int32, numpy=array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]], 
+        dtype=int32)>, 'attention_mask': <tf.Tensor: shape=(1, 15), dtype=int32, 
+        numpy=array([[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]], dtype=int32)>
+    }
+    
     """
     # TODO: Update this function to produce diagrams for all layers and heads.
-    generate_diagram(
-        1,
-        1,
-        tokens,
-        attentions[0][0][0]
-    )
+
+
+    for i in range(0, 12):
+        for j in range(0,12):
+            generate_diagram(
+                i,
+                j,
+                tokens,
+                attentions[i][0][j]
+            )
 
 
 def generate_diagram(layer_number, head_number, tokens, attention_weights):
